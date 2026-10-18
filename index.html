@@ -22,7 +22,7 @@ n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
 document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '1730433004715638');
-fbq('track', 'PageView');
+fbq('track', 'PageView', {}, { eventID: (window.__eidPV = 'ge-pv-' + Date.now()) });
 </script>
 <!-- Google Analytics 4: Defini Cachos -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-8T0GMFR8V8"></script>
@@ -45,13 +45,21 @@ gtag('config', 'G-8T0GMFR8V8', { send_page_view: true });
   var GRUPO = atob("aHR0cHM6Ly9jaGF0LndoYXRzYXBwLmNvbS9HbXZCQmN2Z2JRWjh5b3VhaVh5UnM3");
   var origem = new URLSearchParams(location.search).get('o') || 'direto';
   document.getElementById('btn').href = GRUPO;
+  // Um id por visita: o pixel JS e o beacon de imagem levam o mesmo eventID, então o Meta conta uma vez só.
+  var eid = 'ge-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  function beacon(ev, extra){
+    try { new Image().src = 'https://www.facebook.com/tr?id=1730433004715638&ev=' + ev + '&eid=' + encodeURIComponent(eid + '-' + ev) + '&cd[origem]=' + encodeURIComponent(origem) + (extra || '') + '&noscript=1'; } catch(e){}
+  }
+  beacon('PageView');
   function marcar(){
-    try { fbq('track', 'Lead', { content_name: 'grupo-estreia', origem: origem }); } catch(e){}
-    try { gtag('event', 'whatsapp_click', { origem: origem, destino: 'grupo-estreia' }); } catch(e){}
+    beacon('Lead', '&cd[content_name]=grupo-estreia');
+    try { fbq('track', 'Lead', { content_name: 'grupo-estreia', origem: origem }, { eventID: eid + '-Lead' }); } catch(e){}
+    try { gtag('event', 'whatsapp_click', { origem: origem, destino: 'grupo-estreia', transport_type: 'beacon' }); } catch(e){}
   }
   marcar();
   document.getElementById('btn').addEventListener('click', marcar);
-  setTimeout(function(){ location.replace(GRUPO); }, 700);
+  // ?nr=1 desliga o redirecionamento automático (só para teste).
+  if (!new URLSearchParams(location.search).get('nr')) { setTimeout(function(){ location.replace(GRUPO); }, 1500); }
 </script>
 </body>
 </html>
